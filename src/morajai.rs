@@ -1,5 +1,4 @@
-#[derive(Copy, Clone, PartialEq, Eq)]
-#[cfg_attr(test, derive(Debug))]
+#[derive(Copy, Clone, PartialEq, Eq, Debug)]
 pub enum Square {
     YELLOW,
     GRAY,
@@ -13,11 +12,13 @@ pub enum Square {
     WHITE,
 }
 
+type PuzzleGrid = [[Square;3];3];
+
 #[derive(Copy, Clone, PartialEq, Eq)]
 #[cfg_attr(test, derive(Debug))]
 pub struct PuzzleBox {
     target: [Square;4], // ul, ur, ll, lr
-    grid: [[Square;3];3], // row, col
+    grid: PuzzleGrid, // row, col
 }
 
 pub fn is_solved(p: &PuzzleBox) -> bool {
@@ -27,8 +28,19 @@ pub fn is_solved(p: &PuzzleBox) -> bool {
     p.target[3] == p.grid[2][2]
 }
 
-pub fn act(p: &PuzzleBox, r: usize, c: usize) -> PuzzleBox {
-    panic!("Not implemented yet");
+pub fn act(p: &mut PuzzleGrid, r: usize, c: usize) {
+    match p[r][c] {
+        Square::GRAY => {}, // no-op
+        Square::YELLOW => {
+            // advance vertically by one if possible
+            if r > 0 {
+                let old = p[r-1][c]; // can't use std::mem::swap due to double mutable borrow
+                p[r-1][c] = Square::YELLOW;
+                p[r][c] = old;
+            }
+        },
+        _ => panic!("square not implemented {:?}", p[r][c]),
+    }
 }
 
 #[cfg(test)]
@@ -42,18 +54,26 @@ mod test {
     }
 
     #[test]
+    fn test_act_gray() {
+        let mut test_grid = [[Square::GRAY;3];3];
+        let target_grid = test_grid.clone();
+
+        act(&mut test_grid, 1, 1);
+        // Check that the grid has not changed
+        assert_eq!(test_grid, target_grid, "Acting on gray square should leave all squares unchanged");
+    }
+
+    #[test]
     fn test_act_yellow() {
-        let mut initial_grid = [[Square::GRAY;3];3];
-        let mut target_grid = initial_grid.clone();
+        let mut test_grid = [[Square::GRAY;3];3];
+        let mut target_grid = test_grid.clone();
 
-        initial_grid[1][0] = Square::YELLOW; // allow to advance
-        let initial_box = PuzzleBox { target: [Square::YELLOW; 4], grid: initial_grid,};
-
+        test_grid[1][0] = Square::YELLOW; // allow to advance
         target_grid[0][0] = Square::YELLOW; // set as final
-        let expected_box = PuzzleBox { target: [Square::YELLOW; 4], grid: target_grid,};
 
-        let new_box = act(&initial_box, 0, 0);
+
+        act(&mut test_grid, 1, 0);
         // Check that the top-left square has changed to yellow and that none others have changed
-        assert_eq!(new_box, expected_box, "Acting on yellow square should advance vertically by one and leave all other squares unchanged");
+        assert_eq!(test_grid, target_grid, "Acting on yellow square should advance vertically by one and leave all other squares unchanged");
     }
 }
