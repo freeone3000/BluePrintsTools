@@ -1,4 +1,4 @@
-#[derive(Copy, Clone, PartialEq, Eq, Debug)]
+#[derive(Copy, Clone, PartialEq, Eq, Debug, Hash)]
 pub enum Square {
     GRAY, // do nothing
     YELLOW, // move up one (and swap)
@@ -84,6 +84,32 @@ pub fn act(p: &mut PuzzleGrid, r: usize, c: usize) {
             p[r2][c2] = p[r][c];
             p[r][c] = old;
         },
+        Square::ORANGE => {
+            // change to mode of surrounding (excluding grey). if no mode, no change.
+            use std::collections::HashMap;
+            let mut counts: HashMap<Square, usize> = HashMap::new();
+            for dr in -1..=1 {
+                for dc in -1..=1 {
+                    if dr == 0 && dc == 0 {
+                        continue; // skip self
+                    }
+                    let (nr, nc) = (r as isize + dr, c as isize + dc);
+                    if nr >= 0 && nr < 3 && nc >= 0 && nc < 3 {
+                        let neighbor = p[nr as usize][nc as usize];
+                        if neighbor != Square::GRAY {
+                            *counts.entry(neighbor).or_insert(0) += 1;
+                        }
+                    }
+                }
+            }
+            // if there exists a largest mode,
+            if let Some((&mode, max)) = counts.iter().max_by_key(|&(_, count)| count) {
+                // and it is unique,
+                if counts.iter().filter(|(_, count)| *count == max).count() == 1 {
+                    p[r][c] = mode; // set to that mode
+                }
+            }
+        }
         _ => panic!("square not implemented {:?}", p[r][c]),
     }
 }
@@ -243,7 +269,7 @@ mod test {
         let target_grid = test_grid.clone();
         // target grid is unchanged
 
-        act(&mut test_grid, 1, 1);
+        act(&mut test_grid, 0, 0);
         // Check that the grid has not changed
         assert_eq!(test_grid, target_grid, "Acting on orange square with no mode in surrounding squares should leave all squares unchanged");
     }
