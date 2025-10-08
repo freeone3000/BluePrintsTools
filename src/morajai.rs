@@ -75,7 +75,8 @@ pub fn act(p: &mut PuzzleGrid, r: usize, c: usize) {
             }
         }
         Square::PINK => {
-            // TODO actually math this out, LLM is proving a bit of an issue here
+            // first, determine iterlist of things to rotate
+            // then, assign each to the previous, and assign the last to the first
         }
         Square::GREEN => {
             // swap over centerpoint
@@ -110,7 +111,23 @@ pub fn act(p: &mut PuzzleGrid, r: usize, c: usize) {
                 }
             }
         }
-        _ => panic!("square not implemented {:?}", p[r][c]),
+        Square::WHITE => {
+            // "lights out" - toggle self and adjacent white to gray, adjacent grey to white.
+            let mut to_toggle = vec![(r, c)];
+            for (dr, dc) in [(-1,0), (1,0), (0,-1), (0,1)] {
+                let (nr, nc) = (r as isize + dr, c as isize + dc);
+                if nr >= 0 && nr < 3 && nc >= 0 && nc < 3 {
+                    to_toggle.push((nr as usize, nc as usize));
+                }
+            }
+            for (tr, tc) in to_toggle {
+                p[tr][tc] = match p[tr][tc] {
+                    Square::WHITE => Square::GRAY,
+                    Square::GRAY => Square::WHITE,
+                    other => other,
+                };
+            }
+        }
     }
 }
 
@@ -287,12 +304,38 @@ mod test {
     }
 
     #[test]
-    fn test_act_pink() {
-        // TODO NOT IMPLEMENTED
+    fn test_act_pink_corner() {
+        panic!("not implemented")
+    }
+
+    #[test]
+    fn test_act_pink_edge() {
+        panic!("not implemented")
+    }
+
+    #[test]
+    fn test_act_pink_center() {
+        panic!("not implemented")
     }
 
     #[test]
     fn test_act_white() {
-        // TODO NOT IMPLEMENTED
+        let mut test_grid = [[Square::GRAY;3];3];
+        test_grid[1][1] = Square::WHITE;
+        test_grid[0][1] = Square::PINK;
+        test_grid[1][0] = Square::WHITE;
+        test_grid[1][2] = Square::GRAY;
+        test_grid[2][1] = Square::GRAY;
+        let mut target_grid = test_grid.clone();
+
+        target_grid[1][1] = Square::GRAY; // self to gray
+        target_grid[0][1] = Square::PINK; // non-white, non-grey unchanged
+        target_grid[1][0] = Square::GRAY; // white to gray
+        target_grid[1][2] = Square::WHITE; // gray to white
+        target_grid[2][1] = Square::WHITE; // gray to white
+
+        act(&mut test_grid, 1, 1);
+        // Check that the color changes have occurred and that none others have changed
+        assert_eq!(test_grid, target_grid, "Acting on white square should toggle self and adjacent white to gray, adjacent grey to white, and leave all other squares unchanged");
     }
 }
