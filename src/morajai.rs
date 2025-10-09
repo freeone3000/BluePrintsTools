@@ -170,7 +170,8 @@ pub fn act(p: &mut PuzzleGrid, r: usize, c: usize) {
             }
         }
         Square::White => {
-            // "lights out" - toggle self and adjacent white to gray, adjacent grey to white.
+            // "lights out" - toggle self and adjacent of same color to gray, adjacent grey to same color.
+            let self_color = p[r][c];
             let mut to_toggle = vec![(r, c)];
             for (dr, dc) in [(-1, 0), (1, 0), (0, -1), (0, 1)] {
                 let (nr, nc) = (r as isize + dr, c as isize + dc);
@@ -179,11 +180,11 @@ pub fn act(p: &mut PuzzleGrid, r: usize, c: usize) {
                 }
             }
             for (tr, tc) in to_toggle {
-                p[tr][tc] = match p[tr][tc] {
-                    Square::White => Square::Neutral,
-                    Square::Neutral => Square::White,
-                    other => other,
-                };
+                if p[tr][tc] == self_color {
+                    p[tr][tc] = Square::Neutral;
+                } else if p[tr][tc] == Square::Neutral {
+                    p[tr][tc] = self_color;
+                }
             }
         }
     }
@@ -607,6 +608,23 @@ mod test_act {
             test_grid, target_grid,
             "Acting on white square should toggle self and adjacent white to gray, adjacent grey to white, and leave all other squares unchanged"
         );
+    }
+
+    #[test]
+    fn test_act_blue_mirror_white() {
+        let mut test_grid = [
+            [Square::Neutral, Square::White, Square::Pink],
+            [Square::Neutral, Square::White, Square::White],
+            [Square::Neutral, Square::Blue, Square::Neutral],
+        ];
+        let target_grid = [
+            [Square::Neutral, Square::White, Square::Pink],
+            [Square::Neutral, Square::White, Square::White],
+            [Square::Blue, Square::Neutral, Square::Blue],
+        ];
+
+        act(&mut test_grid, 2, 1);
+        assert_eq!(test_grid, target_grid, "Blue should turn neutrals blue when mirroring white");
     }
 }
 
