@@ -48,9 +48,6 @@ pub fn is_solvable(p: &PuzzleBox) -> bool {
         target_map[corner] += 1;
     }
 
-    println!("Target: {:?}", target_map);
-    println!("Counts: {:?}", square_counts);
-
     // for every target, there exist at least that many squares
     let interpret = target_map.into_iter().all(|(key, count)| match key {
         White => square_counts[White] + square_counts[Neutral] + square_counts[Orange] >= count, // can make white from grey
@@ -58,7 +55,6 @@ pub fn is_solvable(p: &PuzzleBox) -> bool {
         Red => square_counts[Red] + square_counts[Black] + square_counts[White] + square_counts[Orange] + square_counts[Neutral] >= count, // can make red from black and white, we can make white from grey, and orange can be anything
         k => square_counts[k] + square_counts[Orange] >= count
     });
-    println!("Interpret: {:?}", interpret);
     interpret
 }
 
