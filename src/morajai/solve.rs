@@ -8,25 +8,14 @@ fn act_adapt(puzzle: &PuzzleBox, action: &(usize, usize)) -> PuzzleBox {
 }
 
 /// returns the sequence of steps, or None if no solution was found to the supplied max depth
-pub fn solve(puzzle_box: &PuzzleBox, max_depth: usize) -> Option<Vec<(usize, usize)>> {
-    for i in 0..=max_depth {
-        let (result, remaining) = search::bounded_dfs(
-            puzzle_box,
-            possible_actions,
-            act_adapt,
-            is_solved,
-            is_solvable,
-            vec![],
-            i,
-        );
-        if let Some(solution) = result {
-            return Some(solution);
-        }
-        if !remaining {
-            return None;
-        }
-    }
-    None
+pub fn solve(puzzle_box: &PuzzleBox, _max_depth: usize) -> Option<Vec<(usize, usize)>> {
+    search::bfs(
+        puzzle_box,
+        possible_actions,
+        act_adapt,
+        is_solved,
+        is_solvable,
+    )
 }
 
 #[cfg(test)]
