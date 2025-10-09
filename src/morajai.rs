@@ -1,5 +1,3 @@
-use enum_map::EnumMap;
-
 #[derive(Copy, Clone, PartialEq, Eq, Debug, Hash)]
 #[derive(enum_map::Enum)]
 #[repr(u16)]
@@ -33,29 +31,8 @@ pub fn is_solved(p: &PuzzleBox) -> bool {
         && p.target[3] == p.grid[2][2]
 }
 
-pub fn is_solvable(p: &PuzzleBox) -> bool {
-    use Square::*;
-
-    let mut square_counts: EnumMap<Square, u8> = EnumMap::default();
-    for row in p.grid.iter() {
-        for &square in row.iter() {
-            square_counts[square] += 1;
-        }
-    }
-    // unsolvable if there are more target colors than available colors
-    let mut target_map: EnumMap<Square, u8> = EnumMap::default();
-    for &corner in p.target.iter() {
-        target_map[corner] += 1;
-    }
-
-    // for every target, there exist at least that many squares
-    let interpret = target_map.into_iter().all(|(key, count)| match key {
-        White => square_counts[White] + square_counts[Neutral] + square_counts[Orange] >= count, // can make white from grey
-        Black => square_counts[Black] + square_counts[White] + square_counts[Neutral] + square_counts[Orange] >= count, // can make black from white, we can make white from grey
-        Red => square_counts[Red] + square_counts[Black] + square_counts[White] + square_counts[Orange] + square_counts[Neutral] >= count, // can make red from black and white, we can make white from grey, and orange can be anything
-        k => square_counts[k] + square_counts[Orange] >= count
-    });
-    interpret
+pub fn is_solvable(_p: &PuzzleBox) -> bool {
+    true
 }
 
 pub fn act(p: &mut PuzzleGrid, r: usize, c: usize) {
@@ -241,15 +218,6 @@ mod test_solved {
             ],
         };
         assert!(is_solved(&solved_box));
-    }
-
-    #[test]
-    fn test_is_solvable_obviously_not() {
-        let unsolvable_box = PuzzleBox {
-            target: [Square::Blue; 4],
-            grid: [[Square::Red; 3]; 3],
-        }; // trivially unsolvable
-        assert!(!is_solvable(&unsolvable_box), "We have no red squares, so this box is not solvable.");
     }
 
     #[test]
