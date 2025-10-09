@@ -20,12 +20,10 @@ where
     StateType: Clone,
     ActionType: Clone,
 {
-    if max_depth == 0 {
-        if is_goal_fn(&initial_state) {
-            (Some(cur_actions), true)
-        } else {
-            (None, true)
-        }
+    if is_goal_fn(&initial_state) {
+        (Some(cur_actions), true)
+    } else if max_depth == 0 {
+        (None, true)
     } else {
         let mut any_remaining = false;
         for action in enumerate_actions_fn(&initial_state) {
