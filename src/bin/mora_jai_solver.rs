@@ -1,4 +1,4 @@
-use mora_jai_solver::morajai::{solve, PuzzleBox, Square};
+use mora_jai_solver::morajai::{act, solve, PuzzleBox, Square};
 
 const MAX_DEPTH: usize = 100;
 
@@ -25,7 +25,7 @@ fn main() {
             .expect("Failed to read line");
     }
 
-    let puzzle = PuzzleBox {
+    let mut puzzle = PuzzleBox {
         target: line_to_corners(&corners),
         grid: lines_to_grid(box_lines),
     };
@@ -40,6 +40,8 @@ fn main() {
             } else {
                 for step in &solution {
                     println!("Press at row {}, column {}", step.0 + 1, step.1 + 1);
+                    act(&mut puzzle.grid, step.0, step.1);
+                    println!("{}\n", puzzle);
                 }
             }
         }
