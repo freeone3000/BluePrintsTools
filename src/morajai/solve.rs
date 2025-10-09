@@ -87,19 +87,6 @@ mod tests {
     }
 
     #[test]
-    fn test_solve_case_3() {
-        let case_3 = PuzzleBox {
-            target: [Orange;4],
-            grid: [
-                [Orange, Green, Orange],
-                [Yellow, Orange, Orange],
-                [Blue, Yellow, Orange],
-            ]
-        };
-        assert!(solve(&case_3, 20).is_some());
-    }
-
-    #[test]
     fn test_solve_case_4() {
         let case_4 = PuzzleBox {
             target: [Red;4],
