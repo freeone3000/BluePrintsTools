@@ -87,6 +87,20 @@ mod tests {
     }
 
     #[test]
+    fn test_solve_case_3() {
+        // todo fix
+        let case_3 = PuzzleBox {
+            target: [Orange;4],
+            grid: [
+                [Neutral, Orange, Orange],
+                [Yellow, Orange, Black],
+                [Blue, Blue, Orange]
+            ]
+        };
+        assert!(solve(&case_3, 100).is_some());
+    }
+
+    #[test]
     fn test_solve_case_4() {
         let case_4 = PuzzleBox {
             target: [Red;4],
