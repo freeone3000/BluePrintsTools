@@ -18,8 +18,8 @@ pub type PuzzleGrid = [[Square;3];3];
 #[derive(Copy, Clone, PartialEq, Eq)]
 #[cfg_attr(test, derive(Debug))]
 pub struct PuzzleBox {
-    target: [Square;4], // ul, ur, ll, lr
-    grid: PuzzleGrid, // row, col
+    pub target: [Square;4], // ul, ur, ll, lr
+    pub grid: PuzzleGrid, // row, col
 }
 
 pub fn is_solved(p: &PuzzleBox) -> bool {
@@ -76,8 +76,7 @@ pub fn act(p: &mut PuzzleGrid, r: usize, c: usize) {
             }
         }
         Square::PINK => {
-            // first, determine iterlist of things to rotate
-            // then, assign each to the previous, and assign the last to the first
+            panic!("not yet implemented");
         }
         Square::GREEN => {
             // swap over centerpoint
@@ -135,6 +134,18 @@ pub fn act(p: &mut PuzzleGrid, r: usize, c: usize) {
 #[cfg(test)]
 mod test {
     use super::*;
+
+    fn format_grid(grid: &PuzzleGrid) -> String {
+        let mut out = String::new();
+        for row in grid {
+            out += "|";
+            for square in row {
+               out += format!("{}|", square).as_str();
+            }
+            out += "\n";
+        }
+        out
+    }
 
     #[test]
     fn test_is_solved() {
@@ -322,34 +333,80 @@ mod test {
 
     #[test]
     fn test_act_pink_corner() {
-        panic!("not implemented")
+        let mut test_grid = [[Square::NEUTRAL;3];3];
+        let mut target_grid = test_grid.clone();
+
+        test_grid[0][0] = Square::PINK;
+        test_grid[0][1] = Square::YELLOW;
+        test_grid[1][1] = Square::BLACK;
+        test_grid[1][0] = Square::VIOLET;
+
+        target_grid[0][0] = Square::PINK;
+        target_grid[0][1] = Square::VIOLET;
+        target_grid[1][1] = Square::YELLOW;
+        target_grid[1][0] = Square::BLACK;
+
+        act(&mut test_grid, 0, 0);
+        // Check that the color changes have occurred and that none others have changed
+        assert_eq!(test_grid, target_grid, "Acting on pink square should rotate surrounding squares clockwise and leave all other squares unchanged");
     }
 
     #[test]
     fn test_act_pink_edge() {
-        panic!("not implemented")
+        let mut test_grid = [[Square::NEUTRAL;3];3];
+        let mut target_grid = test_grid.clone();
+
+        test_grid[0][1] = Square::PINK;
+        test_grid[0][0] = Square::YELLOW;
+        test_grid[0][2] = Square::VIOLET;
+        test_grid[1][2] = Square::BLACK;
+        test_grid[1][1] = Square::RED;
+        test_grid[1][0] = Square::GREEN;
+
+        target_grid[0][1] = Square::PINK;
+        target_grid[0][0] = Square::GREEN;
+        target_grid[0][2] = Square::YELLOW;
+        target_grid[1][2] = Square::VIOLET;
+        target_grid[1][1] = Square::BLACK;
+        target_grid[1][0] = Square::RED;
+
+        println!("{}", format_grid(&test_grid));
+        println!("{}", format_grid(&target_grid));
+
+        act(&mut test_grid, 0, 1);
+        // Check that the color changes have occurred and that none others have changed
+        assert_eq!(test_grid, target_grid, "Acting on pink square should rotate surrounding squares clockwise and leave all other squares unchanged");
     }
 
     #[test]
     fn test_act_pink_center() {
-        panic!("not implemented")
+        let mut test_grid = [
+            [Square::NEUTRAL, Square::YELLOW, Square::BLACK],
+            [Square::RED, Square::PINK, Square::BLUE],
+            [Square::GREEN, Square::NEUTRAL, Square::WHITE]
+        ];
+        let target_grid = [
+            [Square::RED, Square::NEUTRAL, Square::YELLOW],
+            [Square::GREEN, Square::PINK, Square::BLACK],
+            [Square::NEUTRAL, Square::WHITE, Square::BLUE]
+        ];
+
+        act(&mut test_grid, 1, 1);
+        assert_eq!(test_grid, target_grid, "Acting on pink square should rotate surrounding squares clockwise and leave all other squares unchanged");
     }
 
     #[test]
     fn test_act_white() {
-        let mut test_grid = [[Square::NEUTRAL;3];3];
-        test_grid[1][1] = Square::WHITE;
-        test_grid[0][1] = Square::PINK;
-        test_grid[1][0] = Square::WHITE;
-        test_grid[1][2] = Square::NEUTRAL;
-        test_grid[2][1] = Square::NEUTRAL;
-        let mut target_grid = test_grid.clone();
-
-        target_grid[1][1] = Square::NEUTRAL; // self to gray
-        target_grid[0][1] = Square::PINK; // non-white, non-grey unchanged
-        target_grid[1][0] = Square::NEUTRAL; // white to gray
-        target_grid[1][2] = Square::WHITE; // gray to white
-        target_grid[2][1] = Square::WHITE; // gray to white
+        let mut test_grid = [
+            [Square::NEUTRAL, Square::WHITE, Square::PINK],
+            [Square::NEUTRAL, Square::WHITE, Square::WHITE],
+            [Square::NEUTRAL, Square::PINK, Square::WHITE],
+        ];
+        let target_grid = [
+            [Square::NEUTRAL, Square::NEUTRAL, Square::PINK],
+            [Square::WHITE, Square::NEUTRAL, Square::NEUTRAL],
+            [Square::NEUTRAL, Square::PINK, Square::WHITE],
+        ];
 
         act(&mut test_grid, 1, 1);
         // Check that the color changes have occurred and that none others have changed
