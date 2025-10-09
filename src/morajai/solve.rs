@@ -1,4 +1,4 @@
-use crate::iddfs;
+use crate::search;
 use crate::morajai::{PuzzleBox, act, is_solved, possible_actions, is_solvable};
 
 fn act_adapt(puzzle: &PuzzleBox, action: &(usize, usize)) -> PuzzleBox {
@@ -10,10 +10,7 @@ fn act_adapt(puzzle: &PuzzleBox, action: &(usize, usize)) -> PuzzleBox {
 /// returns the sequence of steps, or None if no solution was found to the supplied max depth
 pub fn solve(puzzle_box: &PuzzleBox, max_depth: usize) -> Option<Vec<(usize, usize)>> {
     for i in 0..=max_depth {
-        if i % 10 == 0 {
-            println!("Searching at depth {}", i);
-        }
-        let (result, remaining) = iddfs::bounded_dfs(
+        let (result, remaining) = search::bounded_dfs(
             puzzle_box,
             possible_actions,
             act_adapt,

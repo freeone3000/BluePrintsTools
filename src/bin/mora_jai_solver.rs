@@ -1,10 +1,4 @@
-use crate::morajai::{PuzzleBox, Square};
-use crate::morajai_display::char_to_square;
-
-mod iddfs;
-mod morajai;
-mod morajai_display;
-mod solve;
+use mora_jai_solver::morajai::{solve, PuzzleBox, Square};
 
 const MAX_DEPTH: usize = 100;
 
@@ -12,7 +6,7 @@ fn main() {
     let mut corners: String = String::new();
     let mut box_lines: [String; 3] = [String::new(), String::new(), String::new()];
     println!("The following short codes are used:");
-    println!("{}", morajai_display::generate_legend());
+    println!("{}", generate_legend());
     println!(
         "Counting from the TOP LEFT, going CLOCKWISE (entering one symbol only for symmetric boxes):"
     );
@@ -36,7 +30,7 @@ fn main() {
         grid: lines_to_grid(box_lines),
     };
     println!("Solving puzzle:\n {}", puzzle);
-    let solution = solve::solve(&puzzle, MAX_DEPTH);
+    let solution = solve(&puzzle, MAX_DEPTH);
 
     println!("Solution: ");
     match solution {
@@ -76,4 +70,35 @@ fn line_to_corners(line: &str) -> [Square; 4] {
         char_to_square(third),
         char_to_square(fourth),
     ]
+}
+
+pub fn char_to_square(c: char) -> Square {
+    match c.to_ascii_uppercase() {
+        'Y' => Square::Yellow,
+        'V' => Square::Violet,
+        'B' => Square::Black,
+        'R' => Square::Red,
+        'P' => Square::Pink,
+        'G' => Square::Green,
+        'O' => Square::Orange,
+        'U' => Square::Blue,
+        'W' => Square::White,
+        '.' => Square::Neutral,
+        _ => panic!("Invalid character for square: {:x?}", c),
+    }
+}
+
+pub fn generate_legend() -> String {
+    let mut out = String::new();
+    out.push_str("Y: Yellow\n");
+    out.push_str("V: Violet\n");
+    out.push_str("B: Black\n");
+    out.push_str("R: Red\n");
+    out.push_str("P: Pink\n");
+    out.push_str("G: Green\n");
+    out.push_str("O: Orange\n");
+    out.push_str("U: Blue\n");
+    out.push_str("W: White\n");
+    out.push_str(".: Neutral (no color)\n");
+    out
 }

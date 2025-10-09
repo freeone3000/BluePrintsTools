@@ -1,3 +1,8 @@
+mod morajai_display;
+pub use morajai_display::*;
+mod solve;
+pub use solve::*;
+
 #[derive(Copy, Clone, PartialEq, Eq, Debug, Hash)]
 #[derive(enum_map::Enum)]
 #[repr(u16)]
@@ -17,7 +22,7 @@ pub enum Square {
 
 pub type PuzzleGrid = [[Square; 3]; 3];
 
-#[derive(Copy, Clone, PartialEq, Eq)]
+#[derive(Copy, Clone, PartialEq, Eq, Hash)]
 #[cfg_attr(test, derive(Debug))]
 pub struct PuzzleBox {
     pub target: [Square; 4], // ul, ur, ll, lr
@@ -286,7 +291,7 @@ mod test_solved {
 #[cfg(test)]
 mod test_act {
     use super::*;
-    use crate::morajai_display::format_grid;
+    use morajai_display::format_grid;
 
     #[test]
     fn test_act_gray() {

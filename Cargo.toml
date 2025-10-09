@@ -3,5 +3,19 @@ name = "mora-jai-solver"
 version = "0.1.0"
 edition = "2024"
 
+[lib]
+path = "src/lib.rs"
+
+[[bin]]
+name = "mora_jai_solver"
+
+[[bench]]
+name = "solve_tree_search"
+harness = false
+
 [dependencies]
 enum-map = "2.7.3"
+
+[dev-dependencies]
+criterion = { version = "0.5", features = ["html_reports"] }
+

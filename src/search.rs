@@ -52,3 +52,41 @@ where
         (None, any_remaining)
     }
 }
+
+pub fn bfs<StateType, ActionType>(
+    initial_state: &StateType,
+    enumerate_actions_fn: fn(&StateType) -> Vec<ActionType>,
+    apply_action_fn: fn(&StateType, &ActionType) -> StateType,
+    is_goal_fn: fn(&StateType) -> bool,
+    is_solvable: fn(&StateType) -> bool,
+) -> Option<Vec<ActionType>>
+where
+    StateType: Clone + Eq + std::hash::Hash,
+    ActionType: Clone,
+{
+    use std::collections::{HashSet, VecDeque};
+
+    let mut queue: VecDeque<(StateType, Vec<ActionType>)> = VecDeque::new();
+    let mut visited: HashSet<StateType> = HashSet::new();
+
+    queue.push_back((initial_state.clone(), vec![]));
+    visited.insert(initial_state.clone());
+
+    while let Some((current_state, actions)) = queue.pop_front() {
+        if is_goal_fn(&current_state) {
+            return Some(actions);
+        }
+
+        for action in enumerate_actions_fn(&current_state) {
+            let new_state = apply_action_fn(&current_state, &action);
+            if !visited.contains(&new_state) && is_solvable(&new_state) {
+                let mut new_actions = actions.clone();
+                new_actions.push(action);
+                queue.push_back((new_state.clone(), new_actions));
+                visited.insert(new_state);
+            }
+        }
+    }
+
+    None
+}

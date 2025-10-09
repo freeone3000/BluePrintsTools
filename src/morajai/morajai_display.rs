@@ -42,36 +42,3 @@ impl Display for PuzzleBox {
         Ok(())
     }
 }
-
-/* helper methods */
-
-pub fn char_to_square(c: char) -> Square {
-    match c.to_ascii_uppercase() {
-        'Y' => Square::Yellow,
-        'V' => Square::Violet,
-        'B' => Square::Black,
-        'R' => Square::Red,
-        'P' => Square::Pink,
-        'G' => Square::Green,
-        'O' => Square::Orange,
-        'U' => Square::Blue,
-        'W' => Square::White,
-        '.' => Square::Neutral,
-        _ => panic!("Invalid character for square: {:x?}", c),
-    }
-}
-
-pub fn generate_legend() -> String {
-    let mut out = String::new();
-    out.push_str("Y: Yellow\n");
-    out.push_str("V: Violet\n");
-    out.push_str("B: Black\n");
-    out.push_str("R: Red\n");
-    out.push_str("P: Pink\n");
-    out.push_str("G: Green\n");
-    out.push_str("O: Orange\n");
-    out.push_str("U: Blue\n");
-    out.push_str("W: White\n");
-    out.push_str(".: Neutral (no color)\n");
-    out
-}
