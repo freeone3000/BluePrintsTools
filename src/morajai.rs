@@ -160,21 +160,28 @@ pub fn act(p: &mut PuzzleGrid, r: usize, c: usize) {
     }
 }
 
-#[cfg(test)]
-mod test {
-    use super::*;
+pub fn possible_actions(p: &PuzzleBox) -> Vec<(usize, usize)> {
+    let mut out = vec![];
+    for r in 0..3 {
+        for c in 0..3 {
+            let does_nothing =
+                    (p.grid[r][c] == Square::NEUTRAL) || // always does nothing
+                    (p.grid[r][c] == Square::BLUE && (p.grid[1][1] == Square::NEUTRAL || p.grid[1][1] == Square::BLUE)) || // blue with grey or blue in center does nothing
+                    (r == 0 && p.grid[r][c] == Square::YELLOW) || // yellow at top does nothing
+                    (r == 2 && p.grid[r][c] == Square::VIOLET) || // violet at bottom does nothing
+                    (r == 1 && c == 1 && p.grid[r][c] == Square::GREEN); // green at center does nothing;
 
-    fn format_grid(grid: &PuzzleGrid) -> String {
-        let mut out = String::new();
-        for row in grid {
-            out += "|";
-            for square in row {
-               out += format!("{}|", square).as_str();
+            if !does_nothing {
+                out.push((r, c));
             }
-            out += "\n";
         }
-        out
     }
+    out
+}
+
+#[cfg(test)]
+mod test_solved {
+    use super::*;
 
     #[test]
     fn test_is_solved() {
@@ -196,6 +203,23 @@ mod test {
             [Square::BLACK, Square::NEUTRAL, Square::RED],
         ],};
         assert!(is_solved(&solved_box));
+    }
+}
+
+#[cfg(test)]
+mod test_act {
+    use super::*;
+
+    fn format_grid(grid: &PuzzleGrid) -> String {
+        let mut out = String::new();
+        for row in grid {
+            out += "|";
+            for square in row {
+               out += format!("{}|", square).as_str();
+            }
+            out += "\n";
+        }
+        out
     }
 
     #[test]
@@ -442,5 +466,26 @@ mod test {
         act(&mut test_grid, 1, 1);
         // Check that the color changes have occurred and that none others have changed
         assert_eq!(test_grid, target_grid, "Acting on white square should toggle self and adjacent white to gray, adjacent grey to white, and leave all other squares unchanged");
+    }
+}
+
+#[cfg(test)]
+mod test_enumerate {
+    use super::*;
+
+    #[test]
+    fn test_possible_actions() {
+        let puzzle = PuzzleBox {
+            target: [Square::NEUTRAL;4],
+            grid: [
+                [Square::NEUTRAL, Square::YELLOW, Square::NEUTRAL],
+                [Square::NEUTRAL, Square::NEUTRAL, Square::BLUE],
+                [Square::NEUTRAL, Square::NEUTRAL, Square::GREEN],
+            ],
+        };
+
+        let actions = possible_actions(&puzzle);
+        let expected_actions = vec![(2, 2)];
+        assert_eq!(actions, expected_actions, "Only possible no-op is green here");
     }
 }
