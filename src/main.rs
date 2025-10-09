@@ -1,80 +1,79 @@
-use crate::morajai::{act, is_solved, possible_actions, PuzzleBox};
+use crate::morajai::{PuzzleBox, Square};
+use crate::morajai_display::char_to_square;
 
+mod iddfs;
 mod morajai;
 mod morajai_display;
-mod iddfs;
-
-fn main() {
-    println!("Hello, world!");
-}
-
+mod solve;
 
 const MAX_DEPTH: usize = 100;
 
-fn act_adapt(puzzle: &PuzzleBox, action: &(usize, usize)) -> PuzzleBox {
-    let mut new = puzzle.clone();
-    act(&mut new.grid, action.0, action.1);
-    new
+fn main() {
+    let mut corners: String = String::new();
+    let mut box_lines: [String; 3] = [String::new(), String::new(), String::new()];
+    println!("The following short codes are used:");
+    println!("{}", morajai_display::generate_legend());
+    println!(
+        "Counting from the TOP LEFT, going CLOCKWISE (entering one symbol only for symmetric boxes):"
+    );
+    println!(
+        "Please enter your CORNERS on ONE LINE using short codes. No spaces between letters is required."
+    );
+    std::io::stdin()
+        .read_line(&mut corners)
+        .expect("Failed to read line");
+    println!(
+        "Please enter your box on THREE LINES using short codes. No spaces between letters is required."
+    );
+    for i in 0..3 {
+        std::io::stdin()
+            .read_line(&mut box_lines[i])
+            .expect("Failed to read line");
+    }
+
+    let puzzle = PuzzleBox {
+        target: line_to_corners(&corners),
+        grid: lines_to_grid(box_lines),
+    };
+    println!("Solving puzzle:\n {}", puzzle);
+    let solution = solve::solve(&puzzle, MAX_DEPTH);
+
+    println!("Solution: ");
+    match solution {
+        Some(solution) => {
+            if solution.is_empty() {
+                println!("(Already solved)");
+            } else {
+                for step in &solution {
+                    println!("Press at row {}, column {}", step.0 + 1, step.1 + 1);
+                }
+            }
+        }
+        None => println!("No solution found within {} steps", MAX_DEPTH),
+    }
 }
 
-/// returns the sequence of steps, or None if no solution was found to the supplied max depth
-fn solve(puzzle_box: &PuzzleBox) -> Option<Vec<(usize, usize)>> {
-    for i in 0..MAX_DEPTH {
-        let (result, remaining) = iddfs::bounded_dfs(
-            puzzle_box,
-            possible_actions,
-            act_adapt,
-            is_solved,
-            vec![],
-            i,
-        );
-        if let Some(solution) = result {
-            return Some(solution);
-        }
-        if !remaining {
-            return None;
-        }
-    }
-    None
+fn lines_to_grid(lines: [String; 3]) -> [[Square; 3]; 3] {
+    lines.map(|line| {
+        let mut iter = line.trim().chars();
+        [
+            char_to_square(iter.next().unwrap_or('.')),
+            char_to_square(iter.next().unwrap_or('.')),
+            char_to_square(iter.next().unwrap_or('.')),
+        ]
+    })
 }
 
-#[cfg(test)]
-mod tests {
-    use crate::morajai::Square;
-    use super::*;
-
-    #[test]
-    fn test_solve_trivial() {
-        let already_solved = PuzzleBox {
-            target: [Square::NEUTRAL;4],
-            grid: [[Square::NEUTRAL;3];3],
-        };
-        assert_eq!(solve(&already_solved), Some(vec![]));
-    }
-
-    #[test]
-    fn test_solve_one_step() {
-        let one_step = PuzzleBox {
-            target: [Square::YELLOW;4],
-            grid: [
-                [Square::NEUTRAL, Square::NEUTRAL, Square::YELLOW],
-                [Square::YELLOW, Square::NEUTRAL, Square::NEUTRAL],
-                [Square::YELLOW, Square::NEUTRAL, Square::YELLOW],
-            ],
-        };
-        assert_eq!(solve(&one_step), Some(vec![(1, 0)]));
-    }
-
-    #[test]
-    fn test_solve_multi_step() {
-        let multi_step = PuzzleBox {
-            target: [Square::GREEN;4],
-            grid: [
-                [Square::BLACK, Square::GREEN, Square::GREEN],
-                [Square::BLUE, Square::BLACK, Square::VIOLET],
-                [Square::BLACK, Square::GREEN, Square::GREEN],
-            ]
-        };
-        assert_eq!(solve(&multi_step), Some(vec![(0, 0), (2, 0)]));
-    }
+fn line_to_corners(line: &str) -> [Square; 4] {
+    let mut iter = line.trim().chars();
+    let first = iter.next().expect("has at least one character");
+    let second = iter.next().unwrap_or(first);
+    let third = iter.next().unwrap_or(first);
+    let fourth = iter.next().unwrap_or(first);
+    [
+        char_to_square(first),
+        char_to_square(second),
+        char_to_square(third),
+        char_to_square(fourth),
+    ]
 }
