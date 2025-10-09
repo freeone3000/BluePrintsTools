@@ -32,7 +32,7 @@ pub fn is_solved(p: &PuzzleBox) -> bool {
 pub fn act(p: &mut PuzzleGrid, r: usize, c: usize) {
     // if blue, act with color in center, but with current position
     let act = if p[r][c] == Square::BLUE {
-        p[2][2]
+        p[1][1]
     } else {
         p[r][c]
     };
