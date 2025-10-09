@@ -1,4 +1,7 @@
+use enum_map::EnumMap;
+
 #[derive(Copy, Clone, PartialEq, Eq, Debug, Hash)]
+#[derive(enum_map::Enum)]
 #[repr(u16)]
 pub enum Square {
     // n, y, v, b, r, p, g, o, u, w
@@ -28,6 +31,35 @@ pub fn is_solved(p: &PuzzleBox) -> bool {
         && p.target[1] == p.grid[0][2]
         && p.target[2] == p.grid[2][0]
         && p.target[3] == p.grid[2][2]
+}
+
+pub fn is_solvable(p: &PuzzleBox) -> bool {
+    use Square::*;
+
+    let mut square_counts: EnumMap<Square, u8> = EnumMap::default();
+    for row in p.grid.iter() {
+        for &square in row.iter() {
+            square_counts[square] += 1;
+        }
+    }
+    // unsolvable if there are more target colors than available colors
+    let mut target_map: EnumMap<Square, u8> = EnumMap::default();
+    for &corner in p.target.iter() {
+        target_map[corner] += 1;
+    }
+
+    println!("Target: {:?}", target_map);
+    println!("Counts: {:?}", square_counts);
+
+    // for every target, there exist at least that many squares
+    let interpret = target_map.into_iter().all(|(key, count)| match key {
+        White => square_counts[White] + square_counts[Neutral] + square_counts[Orange] >= count, // can make white from grey
+        Black => square_counts[Black] + square_counts[White] + square_counts[Neutral] + square_counts[Orange] >= count, // can make black from white, we can make white from grey
+        Red => square_counts[Red] + square_counts[Black] + square_counts[White] + square_counts[Orange] + square_counts[Neutral] >= count, // can make red from black and white, we can make white from grey, and orange can be anything
+        k => square_counts[k] + square_counts[Orange] >= count
+    });
+    println!("Interpret: {:?}", interpret);
+    interpret
 }
 
 pub fn act(p: &mut PuzzleGrid, r: usize, c: usize) {
@@ -212,6 +244,77 @@ mod test_solved {
             ],
         };
         assert!(is_solved(&solved_box));
+    }
+
+    #[test]
+    fn test_is_solvable_obviously_not() {
+        let unsolvable_box = PuzzleBox {
+            target: [Square::Blue; 4],
+            grid: [[Square::Red; 3]; 3],
+        }; // trivially unsolvable
+        assert!(!is_solvable(&unsolvable_box), "We have no red squares, so this box is not solvable.");
+    }
+
+    #[test]
+    fn test_is_solvable_obviously() {
+        let solvable_box = PuzzleBox {
+            target: [Square::Red; 4],
+            grid: [[Square::Red; 3]; 3],
+        }; // trivially solved
+        assert!(is_solvable(&solvable_box), "Every square is red, so this is solvable.");
+    }
+
+    #[test]
+    fn test_solvable_indeterminate() {
+        let multi_step = PuzzleBox {
+            target: [Square::Green; 4],
+            grid: [
+                [Square::Black, Square::Green, Square::Green],
+                [Square::Blue, Square::Black, Square::Violet],
+                [Square::Black, Square::Green, Square::Green],
+            ],
+        };
+        assert!(is_solvable(&multi_step), "This is a solvable box. We have at least four green squares.");
+    }
+
+    #[test]
+    fn test_solvable_red() {
+        let red_solve = PuzzleBox {
+            target: [Square::Red;4],
+            grid: [
+                [Square::White, Square::White, Square::White],
+                [Square::White, Square::White, Square::White],
+                [Square::White, Square::White, Square::Red],
+            ],
+        }; // solution: [(2, 2), (2, 2)]
+        assert!(is_solvable(&red_solve), "We can turn all white to black, then all black to red, so this is solvable.");
+    }
+
+    #[test]
+    fn test_solvable_orange() {
+        let orange_solve = PuzzleBox {
+            target: [Square::Blue;4],
+            grid: [
+                [Square::Blue;3],
+                [Square::Blue;3],
+                [Square::Blue, Square::Blue, Square::Orange],
+            ]
+        };
+        assert!(is_solvable(&orange_solve), "We can turn the orange to blue, so this is solvable.");
+    }
+
+    #[test]
+    fn test_unsolvable_heuristic_says_no() {
+        use crate::morajai::Square::*;
+        let unknowably_unsolvable = PuzzleBox {
+            target: [Orange;4],
+            grid: [
+                [Pink, Orange, Pink],
+                [Orange, Neutral, Orange],
+                [Pink, Orange, Pink]
+            ],
+        };
+        assert!(is_solvable(&unknowably_unsolvable), "The heuristic has no idea whether this is solvable or not, even though we suspect is it not");
     }
 }
 

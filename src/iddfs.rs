@@ -13,6 +13,7 @@ pub fn bounded_dfs<StateType, ActionType>(
     enumerate_actions_fn: fn(&StateType) -> Vec<ActionType>,
     apply_action_fn: fn(&StateType, &ActionType) -> StateType,
     is_goal_fn: fn(&StateType) -> bool,
+    is_solvable_fn: fn(&StateType) -> bool,
     cur_actions: Vec<ActionType>,
     max_depth: usize,
 ) -> (Option<Vec<ActionType>>, bool)
@@ -24,6 +25,8 @@ where
         (Some(cur_actions), true)
     } else if max_depth == 0 {
         (None, true)
+    } else if !is_solvable_fn(initial_state) {
+        (None, false)
     } else {
         let mut any_remaining = false;
         for action in enumerate_actions_fn(initial_state) {
@@ -35,6 +38,7 @@ where
                 enumerate_actions_fn,
                 apply_action_fn,
                 is_goal_fn,
+                is_solvable_fn,
                 new_actions,
                 max_depth - 1,
             );
