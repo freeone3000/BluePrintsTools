@@ -25,9 +25,9 @@ fn main() {
     println!(
         "Please enter your box on THREE LINES using short codes. No spaces between letters is required."
     );
-    for i in 0..3 {
+    for line in &mut box_lines {
         std::io::stdin()
-            .read_line(&mut box_lines[i])
+            .read_line(line)
             .expect("Failed to read line");
     }
 

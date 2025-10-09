@@ -4,16 +4,16 @@ use std::fmt::{Display, Formatter};
 impl Display for Square {
     fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
         let s = match self {
-            Square::NEUTRAL => '.',
-            Square::YELLOW => 'Y',
-            Square::VIOLET => 'V',
-            Square::BLACK => 'B',
-            Square::RED => 'R',
-            Square::PINK => 'P',
-            Square::GREEN => 'G',
-            Square::ORANGE => 'O',
-            Square::BLUE => 'U',
-            Square::WHITE => 'W',
+            Square::Neutral => '.',
+            Square::Yellow => 'Y',
+            Square::Violet => 'V',
+            Square::Black => 'B',
+            Square::Red => 'R',
+            Square::Pink => 'P',
+            Square::Green => 'G',
+            Square::Orange => 'O',
+            Square::Blue => 'U',
+            Square::White => 'W',
         }
         .to_string();
         write!(f, "{}", s)
@@ -47,16 +47,16 @@ impl Display for PuzzleBox {
 
 pub fn char_to_square(c: char) -> Square {
     match c.to_ascii_uppercase() {
-        'Y' => Square::YELLOW,
-        'V' => Square::VIOLET,
-        'B' => Square::BLACK,
-        'R' => Square::RED,
-        'P' => Square::PINK,
-        'G' => Square::GREEN,
-        'O' => Square::ORANGE,
-        'U' => Square::BLUE,
-        'W' => Square::WHITE,
-        '.' => Square::NEUTRAL,
+        'Y' => Square::Yellow,
+        'V' => Square::Violet,
+        'B' => Square::Black,
+        'R' => Square::Red,
+        'P' => Square::Pink,
+        'G' => Square::Green,
+        'O' => Square::Orange,
+        'U' => Square::Blue,
+        'W' => Square::White,
+        '.' => Square::Neutral,
         _ => panic!("Invalid character for square: {:x?}", c),
     }
 }

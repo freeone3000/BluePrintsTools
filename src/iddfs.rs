@@ -20,14 +20,14 @@ where
     StateType: Clone,
     ActionType: Clone,
 {
-    if is_goal_fn(&initial_state) {
+    if is_goal_fn(initial_state) {
         (Some(cur_actions), true)
     } else if max_depth == 0 {
         (None, true)
     } else {
         let mut any_remaining = false;
-        for action in enumerate_actions_fn(&initial_state) {
-            let new_state = apply_action_fn(&initial_state, &action);
+        for action in enumerate_actions_fn(initial_state) {
+            let new_state = apply_action_fn(initial_state, &action);
             let mut new_actions = cur_actions.clone();
             new_actions.push(action);
             let (result, remaining) = bounded_dfs(

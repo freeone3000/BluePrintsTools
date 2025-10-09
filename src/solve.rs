@@ -2,7 +2,7 @@ use crate::iddfs;
 use crate::morajai::{PuzzleBox, act, is_solved, possible_actions};
 
 fn act_adapt(puzzle: &PuzzleBox, action: &(usize, usize)) -> PuzzleBox {
-    let mut new = puzzle.clone();
+    let mut new = *puzzle;
     act(&mut new.grid, action.0, action.1);
     new
 }
@@ -36,8 +36,8 @@ mod tests {
     #[test]
     fn test_solve_trivial() {
         let already_solved = PuzzleBox {
-            target: [Square::NEUTRAL; 4],
-            grid: [[Square::NEUTRAL; 3]; 3],
+            target: [Square::Neutral; 4],
+            grid: [[Square::Neutral; 3]; 3],
         };
         assert_eq!(solve(&already_solved, 10), Some(vec![]));
     }
@@ -45,11 +45,11 @@ mod tests {
     #[test]
     fn test_solve_one_step() {
         let one_step = PuzzleBox {
-            target: [Square::YELLOW; 4],
+            target: [Square::Yellow; 4],
             grid: [
-                [Square::NEUTRAL, Square::NEUTRAL, Square::YELLOW],
-                [Square::YELLOW, Square::NEUTRAL, Square::NEUTRAL],
-                [Square::YELLOW, Square::NEUTRAL, Square::YELLOW],
+                [Square::Neutral, Square::Neutral, Square::Yellow],
+                [Square::Yellow, Square::Neutral, Square::Neutral],
+                [Square::Yellow, Square::Neutral, Square::Yellow],
             ],
         };
         assert_eq!(solve(&one_step, 10), Some(vec![(1, 0)]));
@@ -58,11 +58,11 @@ mod tests {
     #[test]
     fn test_solve_multi_step() {
         let multi_step = PuzzleBox {
-            target: [Square::GREEN; 4],
+            target: [Square::Green; 4],
             grid: [
-                [Square::BLACK, Square::GREEN, Square::GREEN],
-                [Square::BLUE, Square::BLACK, Square::VIOLET],
-                [Square::BLACK, Square::GREEN, Square::GREEN],
+                [Square::Black, Square::Green, Square::Green],
+                [Square::Blue, Square::Black, Square::Violet],
+                [Square::Black, Square::Green, Square::Green],
             ],
         };
         assert_eq!(solve(&multi_step, 10), Some(vec![(0, 0), (2, 0)]));

@@ -2,16 +2,16 @@
 #[repr(u16)]
 pub enum Square {
     // n, y, v, b, r, p, g, o, u, w
-    NEUTRAL, // do nothing
-    YELLOW,  // move up one (and swap)
-    VIOLET,  // move down one (and swap)
-    BLACK,   // rotate row right
-    RED,     // change all white to black, and all black to red (political!)
-    PINK,    // rotate clockwise, with wraparound, this as the center point
-    GREEN,   // swap over centerpoint
-    ORANGE,  // change to mode of surrounding (excluding grey). if no mode, no change.
-    BLUE,    // act as if on centerpoint
-    WHITE,   // "lights out" - toggle self and adjacent white to gray, adjacent grey to white.
+    Neutral, // do nothing
+    Yellow,  // move up one (and swap)
+    Violet,  // move down one (and swap)
+    Black,   // rotate row right
+    Red,     // change all white to black, and all black to red (political!)
+    Pink,    // rotate clockwise, with wraparound, this as the center point
+    Green,   // swap over centerpoint
+    Orange,  // change to mode of surrounding (excluding grey). if no mode, no change.
+    Blue,    // act as if on centerpoint
+    White,   // "lights out" - toggle self and adjacent white to gray, adjacent grey to white.
 }
 
 pub type PuzzleGrid = [[Square; 3]; 3];
@@ -32,51 +32,51 @@ pub fn is_solved(p: &PuzzleBox) -> bool {
 
 pub fn act(p: &mut PuzzleGrid, r: usize, c: usize) {
     // if blue, act with color in center, but with current position
-    let act = if p[r][c] == Square::BLUE {
+    let act = if p[r][c] == Square::Blue {
         p[1][1]
     } else {
         p[r][c]
     };
 
     match act {
-        Square::NEUTRAL => {} // no-op
-        Square::BLUE => {}    // blue with blue in the centerpoint does nothing.
-        Square::YELLOW => {
+        Square::Neutral => {} // no-op
+        Square::Blue => {}    // blue with blue in the centerpoint does nothing.
+        Square::Yellow => {
             // advance vertically by one if possible
             if r > 0 {
                 let old = p[r - 1][c]; // can't use std::mem::swap due to double mutable borrow
-                p[r - 1][c] = Square::YELLOW;
+                p[r - 1][c] = Square::Yellow;
                 p[r][c] = old;
             }
         }
-        Square::VIOLET => {
+        Square::Violet => {
             // advance vertically by one if possible
             if r < 2 {
                 let old = p[r + 1][c]; // can't use std::mem::swap due to double mutable borrow
-                p[r + 1][c] = Square::VIOLET;
+                p[r + 1][c] = Square::Violet;
                 p[r][c] = old;
             }
         }
-        Square::BLACK => {
+        Square::Black => {
             // rotate row right
             let old = p[r][2];
             p[r][2] = p[r][1];
             p[r][1] = p[r][0];
             p[r][0] = old;
         }
-        Square::RED => {
+        Square::Red => {
             // change all white to black, and all black to red (political!)
-            for row in 0..3 {
-                for col in 0..3 {
-                    p[row][col] = match p[row][col] {
-                        Square::WHITE => Square::BLACK,
-                        Square::BLACK => Square::RED,
-                        other => other,
-                    };
+            for row in p.iter_mut() {
+                for square in row.iter_mut() {
+                    if square == &Square::White {
+                        *square = Square::Black;
+                    } else if square == &Square::Black {
+                        *square = Square::Red;
+                    }
                 }
             }
         }
-        Square::PINK => {
+        Square::Pink => {
             // rotate surrounding squares clockwise, with wraparound, this as the center point
             // Clockwise order: TL, T, TR, R, BR, B, BL, L
             let directions = [
@@ -94,7 +94,7 @@ pub fn act(p: &mut PuzzleGrid, r: usize, c: usize) {
             for (dr, dc) in directions.iter() {
                 let nr = r as isize + dr;
                 let nc = c as isize + dc;
-                if nr >= 0 && nr < 3 && nc >= 0 && nc < 3 {
+                if (0..3).contains(&nr) && (0..3).contains(&nc) {
                     positions.push((nr as usize, nc as usize));
                 }
             }
@@ -108,14 +108,14 @@ pub fn act(p: &mut PuzzleGrid, r: usize, c: usize) {
                 }
             }
         }
-        Square::GREEN => {
+        Square::Green => {
             // swap over centerpoint
             let (r2, c2) = (2 - r, 2 - c);
             let old = p[r2][c2]; // can't use std::mem::swap due to double mutable borrow
             p[r2][c2] = p[r][c];
             p[r][c] = old;
         }
-        Square::ORANGE => {
+        Square::Orange => {
             // change to mode of surrounding (excluding grey). if no mode, no change.
             use std::collections::HashMap;
             let mut counts: HashMap<Square, usize> = HashMap::new();
@@ -125,9 +125,9 @@ pub fn act(p: &mut PuzzleGrid, r: usize, c: usize) {
                         continue; // skip self
                     }
                     let (nr, nc) = (r as isize + dr, c as isize + dc);
-                    if nr >= 0 && nr < 3 && nc >= 0 && nc < 3 {
+                    if (0..3).contains(&nr) && (0..3).contains(&nc) {
                         let neighbor = p[nr as usize][nc as usize];
-                        if neighbor != Square::NEUTRAL {
+                        if neighbor != Square::Neutral {
                             *counts.entry(neighbor).or_insert(0) += 1;
                         }
                     }
@@ -141,19 +141,19 @@ pub fn act(p: &mut PuzzleGrid, r: usize, c: usize) {
                 }
             }
         }
-        Square::WHITE => {
+        Square::White => {
             // "lights out" - toggle self and adjacent white to gray, adjacent grey to white.
             let mut to_toggle = vec![(r, c)];
             for (dr, dc) in [(-1, 0), (1, 0), (0, -1), (0, 1)] {
                 let (nr, nc) = (r as isize + dr, c as isize + dc);
-                if nr >= 0 && nr < 3 && nc >= 0 && nc < 3 {
+                if (0..3).contains(&nr) && (0..3).contains(&nc) {
                     to_toggle.push((nr as usize, nc as usize));
                 }
             }
             for (tr, tc) in to_toggle {
                 p[tr][tc] = match p[tr][tc] {
-                    Square::WHITE => Square::NEUTRAL,
-                    Square::NEUTRAL => Square::WHITE,
+                    Square::White => Square::Neutral,
+                    Square::Neutral => Square::White,
                     other => other,
                 };
             }
@@ -165,11 +165,11 @@ pub fn possible_actions(p: &PuzzleBox) -> Vec<(usize, usize)> {
     let mut out = vec![];
     for r in 0..3 {
         for c in 0..3 {
-            let does_nothing = (p.grid[r][c] == Square::NEUTRAL) || // always does nothing
-                    (p.grid[r][c] == Square::BLUE && (p.grid[1][1] == Square::NEUTRAL || p.grid[1][1] == Square::BLUE)) || // blue with grey or blue in center does nothing
-                    (r == 0 && p.grid[r][c] == Square::YELLOW) || // yellow at top does nothing
-                    (r == 2 && p.grid[r][c] == Square::VIOLET) || // violet at bottom does nothing
-                    (r == 1 && c == 1 && p.grid[r][c] == Square::GREEN); // green at center does nothing;
+            let does_nothing = (p.grid[r][c] == Square::Neutral) || // always does nothing
+                    (p.grid[r][c] == Square::Blue && (p.grid[1][1] == Square::Neutral || p.grid[1][1] == Square::Blue)) || // blue with grey or blue in center does nothing
+                    (r == 0 && p.grid[r][c] == Square::Yellow) || // yellow at top does nothing
+                    (r == 2 && p.grid[r][c] == Square::Violet) || // violet at bottom does nothing
+                    (r == 1 && c == 1 && p.grid[r][c] == Square::Green); // green at center does nothing;
 
             if !does_nothing {
                 out.push((r, c));
@@ -186,8 +186,8 @@ mod test_solved {
     #[test]
     fn test_is_solved() {
         let solved_box = PuzzleBox {
-            target: [Square::RED; 4],
-            grid: [[Square::RED; 3]; 3],
+            target: [Square::Red; 4],
+            grid: [[Square::Red; 3]; 3],
         }; // trivially solved
         assert!(is_solved(&solved_box));
     }
@@ -195,8 +195,8 @@ mod test_solved {
     #[test]
     fn test_is_not_solved() {
         let unsolved_box = PuzzleBox {
-            target: [Square::BLUE; 4],
-            grid: [[Square::RED; 3]; 3],
+            target: [Square::Blue; 4],
+            grid: [[Square::Red; 3]; 3],
         }; // trivially unsolved
         assert!(!is_solved(&unsolved_box));
     }
@@ -204,11 +204,11 @@ mod test_solved {
     #[test]
     fn test_is_solved_heterogeneous() {
         let solved_box = PuzzleBox {
-            target: [Square::YELLOW, Square::VIOLET, Square::BLACK, Square::RED],
+            target: [Square::Yellow, Square::Violet, Square::Black, Square::Red],
             grid: [
-                [Square::YELLOW, Square::NEUTRAL, Square::VIOLET],
-                [Square::NEUTRAL, Square::NEUTRAL, Square::NEUTRAL],
-                [Square::BLACK, Square::NEUTRAL, Square::RED],
+                [Square::Yellow, Square::Neutral, Square::Violet],
+                [Square::Neutral, Square::Neutral, Square::Neutral],
+                [Square::Black, Square::Neutral, Square::Red],
             ],
         };
         assert!(is_solved(&solved_box));
@@ -222,7 +222,7 @@ mod test_act {
 
     #[test]
     fn test_act_gray() {
-        let mut test_grid = [[Square::NEUTRAL; 3]; 3];
+        let mut test_grid = [[Square::Neutral; 3]; 3];
         let target_grid = test_grid.clone();
 
         act(&mut test_grid, 1, 1);
@@ -235,11 +235,11 @@ mod test_act {
 
     #[test]
     fn test_act_yellow() {
-        let mut test_grid = [[Square::NEUTRAL; 3]; 3];
+        let mut test_grid = [[Square::Neutral; 3]; 3];
         let mut target_grid = test_grid.clone();
 
-        test_grid[1][0] = Square::YELLOW; // allow to advance
-        target_grid[0][0] = Square::YELLOW; // set as final
+        test_grid[1][0] = Square::Yellow; // allow to advance
+        target_grid[0][0] = Square::Yellow; // set as final
 
         act(&mut test_grid, 1, 0);
         // Check that the top-left square has changed to yellow and that none others have changed
@@ -251,11 +251,11 @@ mod test_act {
 
     #[test]
     fn test_act_purple() {
-        let mut test_grid = [[Square::NEUTRAL; 3]; 3];
+        let mut test_grid = [[Square::Neutral; 3]; 3];
         let mut target_grid = test_grid.clone();
 
-        test_grid[1][2] = Square::VIOLET; // allow to advance
-        target_grid[2][2] = Square::VIOLET; // set as final
+        test_grid[1][2] = Square::Violet; // allow to advance
+        target_grid[2][2] = Square::Violet; // set as final
 
         act(&mut test_grid, 1, 2);
         // Check that the bottom-right square has changed to purple and that none others have changed
@@ -267,11 +267,11 @@ mod test_act {
 
     #[test]
     fn test_act_black() {
-        let mut test_grid = [[Square::NEUTRAL; 3]; 3];
+        let mut test_grid = [[Square::Neutral; 3]; 3];
         let mut target_grid = test_grid.clone();
 
-        test_grid[1] = [Square::BLACK, Square::YELLOW, Square::VIOLET]; // set row to known state
-        target_grid[1] = [Square::VIOLET, Square::BLACK, Square::YELLOW]; // set as final
+        test_grid[1] = [Square::Black, Square::Yellow, Square::Violet]; // set row to known state
+        target_grid[1] = [Square::Violet, Square::Black, Square::Yellow]; // set as final
 
         act(&mut test_grid, 1, 0);
         // Check that the middle row has been rotated right and that none others have changed
@@ -283,17 +283,17 @@ mod test_act {
 
     #[test]
     fn test_act_red() {
-        let mut test_grid = [[Square::NEUTRAL; 3]; 3];
-        test_grid[0][2] = Square::RED;
-        test_grid[2][0] = Square::VIOLET;
-        test_grid[2][1] = Square::YELLOW;
+        let mut test_grid = [[Square::Neutral; 3]; 3];
+        test_grid[0][2] = Square::Red;
+        test_grid[2][0] = Square::Violet;
+        test_grid[2][1] = Square::Yellow;
         let mut target_grid = test_grid.clone();
 
-        test_grid[0][0] = Square::WHITE;
-        test_grid[0][1] = Square::BLACK;
+        test_grid[0][0] = Square::White;
+        test_grid[0][1] = Square::Black;
 
-        target_grid[0][0] = Square::BLACK; // white to black
-        target_grid[0][1] = Square::RED; // black to red
+        target_grid[0][0] = Square::Black; // white to black
+        target_grid[0][1] = Square::Red; // black to red
         // other squares unchanged
 
         act(&mut test_grid, 0, 2);
@@ -306,12 +306,12 @@ mod test_act {
 
     #[test]
     fn test_act_green() {
-        let mut test_grid = [[Square::NEUTRAL; 3]; 3];
+        let mut test_grid = [[Square::Neutral; 3]; 3];
         let mut target_grid = test_grid.clone();
-        test_grid[0][0] = Square::GREEN;
-        test_grid[2][2] = Square::YELLOW;
-        target_grid[0][0] = Square::YELLOW;
-        target_grid[2][2] = Square::GREEN;
+        test_grid[0][0] = Square::Green;
+        test_grid[2][2] = Square::Yellow;
+        target_grid[0][0] = Square::Yellow;
+        target_grid[2][2] = Square::Green;
 
         act(&mut test_grid, 0, 0);
         // Check that the swap over centerpoint has occurred and that none others have changed
@@ -323,13 +323,13 @@ mod test_act {
 
     #[test]
     fn test_act_orange_corner() {
-        let mut test_grid = [[Square::NEUTRAL; 3]; 3];
+        let mut test_grid = [[Square::Neutral; 3]; 3];
         // test corner
-        test_grid[1][0] = Square::YELLOW;
-        test_grid[0][1] = Square::YELLOW;
+        test_grid[1][0] = Square::Yellow;
+        test_grid[0][1] = Square::Yellow;
         let mut target_grid = test_grid.clone();
-        test_grid[0][0] = Square::ORANGE;
-        target_grid[0][0] = Square::YELLOW; // mode of surrounding is yellow
+        test_grid[0][0] = Square::Orange;
+        target_grid[0][0] = Square::Yellow; // mode of surrounding is yellow
 
         act(&mut test_grid, 0, 0);
         // Check that the color change has occurred and that none others have changed
@@ -341,14 +341,14 @@ mod test_act {
 
     #[test]
     fn test_act_orange_edge() {
-        let mut test_grid = [[Square::NEUTRAL; 3]; 3];
+        let mut test_grid = [[Square::Neutral; 3]; 3];
         // test edge
-        test_grid[0][0] = Square::YELLOW;
-        test_grid[0][2] = Square::VIOLET;
-        test_grid[1][1] = Square::YELLOW;
+        test_grid[0][0] = Square::Yellow;
+        test_grid[0][2] = Square::Violet;
+        test_grid[1][1] = Square::Yellow;
         let mut target_grid = test_grid.clone();
-        test_grid[0][1] = Square::ORANGE;
-        target_grid[0][1] = Square::YELLOW; // mode of surrounding is yellow
+        test_grid[0][1] = Square::Orange;
+        target_grid[0][1] = Square::Yellow; // mode of surrounding is yellow
 
         act(&mut test_grid, 0, 1);
         // Check that the color change has occurred and that none others have changed
@@ -360,18 +360,18 @@ mod test_act {
 
     #[test]
     fn test_act_orange_center() {
-        let mut test_grid = [[Square::NEUTRAL; 3]; 3];
+        let mut test_grid = [[Square::Neutral; 3]; 3];
         // test center
-        test_grid[0][0] = Square::YELLOW;
-        test_grid[0][1] = Square::VIOLET;
-        test_grid[0][2] = Square::VIOLET;
-        test_grid[1][0] = Square::YELLOW;
-        test_grid[1][2] = Square::YELLOW;
-        test_grid[2][0] = Square::VIOLET;
-        test_grid[2][1] = Square::YELLOW;
+        test_grid[0][0] = Square::Yellow;
+        test_grid[0][1] = Square::Violet;
+        test_grid[0][2] = Square::Violet;
+        test_grid[1][0] = Square::Yellow;
+        test_grid[1][2] = Square::Yellow;
+        test_grid[2][0] = Square::Violet;
+        test_grid[2][1] = Square::Yellow;
         let mut target_grid = test_grid.clone();
-        test_grid[1][1] = Square::ORANGE;
-        target_grid[1][1] = Square::YELLOW; // mode of surrounding is yellow
+        test_grid[1][1] = Square::Orange;
+        target_grid[1][1] = Square::Yellow; // mode of surrounding is yellow
 
         act(&mut test_grid, 1, 1);
         // Check that the color change has occurred and that none others have changed
@@ -383,11 +383,11 @@ mod test_act {
 
     #[test]
     fn test_act_orange_no_change() {
-        let mut test_grid = [[Square::NEUTRAL; 3]; 3];
+        let mut test_grid = [[Square::Neutral; 3]; 3];
         // test no mode
-        test_grid[0][0] = Square::ORANGE;
-        test_grid[0][1] = Square::VIOLET;
-        test_grid[1][1] = Square::YELLOW;
+        test_grid[0][0] = Square::Orange;
+        test_grid[0][1] = Square::Violet;
+        test_grid[1][1] = Square::Yellow;
         let target_grid = test_grid.clone();
         // target grid is unchanged
 
@@ -401,9 +401,9 @@ mod test_act {
 
     #[test]
     fn test_orange_grey_unchanged() {
-        let mut test_grid = [[Square::NEUTRAL; 3]; 3];
+        let mut test_grid = [[Square::Neutral; 3]; 3];
         // test grey unchanged
-        test_grid[0][0] = Square::ORANGE;
+        test_grid[0][0] = Square::Orange;
         let target_grid = test_grid.clone();
 
         act(&mut test_grid, 0, 0);
@@ -416,18 +416,18 @@ mod test_act {
 
     #[test]
     fn test_act_pink_corner() {
-        let mut test_grid = [[Square::NEUTRAL; 3]; 3];
+        let mut test_grid = [[Square::Neutral; 3]; 3];
         let mut target_grid = test_grid.clone();
 
-        test_grid[0][0] = Square::PINK;
-        test_grid[0][1] = Square::YELLOW;
-        test_grid[1][1] = Square::BLACK;
-        test_grid[1][0] = Square::VIOLET;
+        test_grid[0][0] = Square::Pink;
+        test_grid[0][1] = Square::Yellow;
+        test_grid[1][1] = Square::Black;
+        test_grid[1][0] = Square::Violet;
 
-        target_grid[0][0] = Square::PINK;
-        target_grid[0][1] = Square::VIOLET;
-        target_grid[1][1] = Square::YELLOW;
-        target_grid[1][0] = Square::BLACK;
+        target_grid[0][0] = Square::Pink;
+        target_grid[0][1] = Square::Violet;
+        target_grid[1][1] = Square::Yellow;
+        target_grid[1][0] = Square::Black;
 
         act(&mut test_grid, 0, 0);
         // Check that the color changes have occurred and that none others have changed
@@ -439,22 +439,22 @@ mod test_act {
 
     #[test]
     fn test_act_pink_edge() {
-        let mut test_grid = [[Square::NEUTRAL; 3]; 3];
+        let mut test_grid = [[Square::Neutral; 3]; 3];
         let mut target_grid = test_grid.clone();
 
-        test_grid[0][1] = Square::PINK;
-        test_grid[0][0] = Square::YELLOW;
-        test_grid[0][2] = Square::VIOLET;
-        test_grid[1][2] = Square::BLACK;
-        test_grid[1][1] = Square::RED;
-        test_grid[1][0] = Square::GREEN;
+        test_grid[0][1] = Square::Pink;
+        test_grid[0][0] = Square::Yellow;
+        test_grid[0][2] = Square::Violet;
+        test_grid[1][2] = Square::Black;
+        test_grid[1][1] = Square::Red;
+        test_grid[1][0] = Square::Green;
 
-        target_grid[0][1] = Square::PINK;
-        target_grid[0][0] = Square::GREEN;
-        target_grid[0][2] = Square::YELLOW;
-        target_grid[1][2] = Square::VIOLET;
-        target_grid[1][1] = Square::BLACK;
-        target_grid[1][0] = Square::RED;
+        target_grid[0][1] = Square::Pink;
+        target_grid[0][0] = Square::Green;
+        target_grid[0][2] = Square::Yellow;
+        target_grid[1][2] = Square::Violet;
+        target_grid[1][1] = Square::Black;
+        target_grid[1][0] = Square::Red;
 
         println!("Test:\n{}", format_grid(&test_grid));
         println!("Target:\n{}", format_grid(&target_grid));
@@ -472,14 +472,14 @@ mod test_act {
     #[test]
     fn test_act_pink_center() {
         let mut test_grid = [
-            [Square::NEUTRAL, Square::YELLOW, Square::BLACK],
-            [Square::RED, Square::PINK, Square::BLUE],
-            [Square::GREEN, Square::NEUTRAL, Square::WHITE],
+            [Square::Neutral, Square::Yellow, Square::Black],
+            [Square::Red, Square::Pink, Square::Blue],
+            [Square::Green, Square::Neutral, Square::White],
         ];
         let target_grid = [
-            [Square::RED, Square::NEUTRAL, Square::YELLOW],
-            [Square::GREEN, Square::PINK, Square::BLACK],
-            [Square::NEUTRAL, Square::WHITE, Square::BLUE],
+            [Square::Red, Square::Neutral, Square::Yellow],
+            [Square::Green, Square::Pink, Square::Black],
+            [Square::Neutral, Square::White, Square::Blue],
         ];
 
         act(&mut test_grid, 1, 1);
@@ -492,14 +492,14 @@ mod test_act {
     #[test]
     fn test_act_white() {
         let mut test_grid = [
-            [Square::NEUTRAL, Square::WHITE, Square::PINK],
-            [Square::NEUTRAL, Square::WHITE, Square::WHITE],
-            [Square::NEUTRAL, Square::PINK, Square::WHITE],
+            [Square::Neutral, Square::White, Square::Pink],
+            [Square::Neutral, Square::White, Square::White],
+            [Square::Neutral, Square::Pink, Square::White],
         ];
         let target_grid = [
-            [Square::NEUTRAL, Square::NEUTRAL, Square::PINK],
-            [Square::WHITE, Square::NEUTRAL, Square::NEUTRAL],
-            [Square::NEUTRAL, Square::PINK, Square::WHITE],
+            [Square::Neutral, Square::Neutral, Square::Pink],
+            [Square::White, Square::Neutral, Square::Neutral],
+            [Square::Neutral, Square::Pink, Square::White],
         ];
 
         act(&mut test_grid, 1, 1);
@@ -518,11 +518,11 @@ mod test_enumerate {
     #[test]
     fn test_possible_actions() {
         let puzzle = PuzzleBox {
-            target: [Square::NEUTRAL; 4],
+            target: [Square::Neutral; 4],
             grid: [
-                [Square::NEUTRAL, Square::YELLOW, Square::NEUTRAL],
-                [Square::NEUTRAL, Square::NEUTRAL, Square::BLUE],
-                [Square::NEUTRAL, Square::NEUTRAL, Square::GREEN],
+                [Square::Neutral, Square::Yellow, Square::Neutral],
+                [Square::Neutral, Square::Neutral, Square::Blue],
+                [Square::Neutral, Square::Neutral, Square::Green],
             ],
         };
 
