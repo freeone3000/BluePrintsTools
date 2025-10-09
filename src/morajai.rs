@@ -76,7 +76,36 @@ pub fn act(p: &mut PuzzleGrid, r: usize, c: usize) {
             }
         }
         Square::PINK => {
-            panic!("not yet implemented");
+            // rotate surrounding squares clockwise, with wraparound, this as the center point
+            // Clockwise order: TL, T, TR, R, BR, B, BL, L
+            let directions = [
+                (-1, -1), // TL
+                (-1,  0), // T
+                (-1,  1), // TR
+                ( 0,  1), // R
+                ( 1,  1), // BR
+                ( 1,  0), // B
+                ( 1, -1), // BL
+                ( 0, -1), // L
+            ];
+            // Collect valid positions
+            let mut positions = vec![];
+            for (dr, dc) in directions.iter() {
+                let nr = r as isize + dr;
+                let nc = c as isize + dc;
+                if nr >= 0 && nr < 3 && nc >= 0 && nc < 3 {
+                    positions.push((nr as usize, nc as usize));
+                }
+            }
+            // Collect values
+            let mut values: Vec<Square> = positions.iter().map(|&(nr, nc)| p[nr][nc]).collect();
+            // Rotate clockwise: each position gets value from previous position (counterclockwise neighbor)
+            if !values.is_empty() {
+                values.rotate_right(1);
+                for ((nr, nc), val) in positions.iter().zip(values.iter()) {
+                    p[*nr][*nc] = *val;
+                }
+            }
         }
         Square::GREEN => {
             // swap over centerpoint
@@ -370,10 +399,12 @@ mod test {
         target_grid[1][1] = Square::BLACK;
         target_grid[1][0] = Square::RED;
 
-        println!("{}", format_grid(&test_grid));
-        println!("{}", format_grid(&target_grid));
+        println!("Test:\n{}", format_grid(&test_grid));
+        println!("Target:\n{}", format_grid(&target_grid));
 
         act(&mut test_grid, 0, 1);
+        println!("Result:\n{}", format_grid(&test_grid));
+
         // Check that the color changes have occurred and that none others have changed
         assert_eq!(test_grid, target_grid, "Acting on pink square should rotate surrounding squares clockwise and leave all other squares unchanged");
     }
