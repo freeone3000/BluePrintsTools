@@ -9,7 +9,7 @@ fn act_adapt(puzzle: &PuzzleBox, action: &(usize, usize)) -> PuzzleBox {
 
 /// returns the sequence of steps, or None if no solution was found to the supplied max depth
 pub fn solve(puzzle_box: &PuzzleBox, max_depth: usize) -> Option<Vec<(usize, usize)>> {
-    for i in std::cmp::max(10, max_depth)..=max_depth {
+    for i in 0..=max_depth {
         let (result, remaining) = iddfs::bounded_dfs(
             puzzle_box,
             possible_actions,
@@ -65,6 +65,6 @@ mod tests {
                 [Square::Black, Square::Green, Square::Green],
             ],
         };
-        assert_eq!(solve(&multi_step, 10), Some(vec![(0, 0), (2, 0)]));
+        assert_eq!(solve(&multi_step, 3), Some(vec![(0, 0), (2, 0)]));
     }
 }
