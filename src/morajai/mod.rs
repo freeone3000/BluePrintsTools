@@ -55,7 +55,7 @@ pub fn act(p: &mut PuzzleGrid, r: usize, c: usize) {
             // advance vertically by one if possible
             if r > 0 {
                 let old = p[r - 1][c]; // can't use std::mem::swap due to double mutable borrow
-                p[r - 1][c] = Square::Yellow;
+                p[r - 1][c] = p[r][c]; // actually substitute here, in case of blue
                 p[r][c] = old;
             }
         }
@@ -63,7 +63,7 @@ pub fn act(p: &mut PuzzleGrid, r: usize, c: usize) {
             // advance vertically by one if possible
             if r < 2 {
                 let old = p[r + 1][c]; // can't use std::mem::swap due to double mutable borrow
-                p[r + 1][c] = Square::Violet;
+                p[r + 1][c] = p[r][c]; // actually substitute here, in case of blue
                 p[r][c] = old;
             }
         }
@@ -129,20 +129,12 @@ pub fn act(p: &mut PuzzleGrid, r: usize, c: usize) {
             // change to mode of surrounding (excluding grey). if no mode, no change.
             use enum_map::EnumMap;
             let mut counts: EnumMap<Square, u8> = EnumMap::default();
-            for dr in -1..=1 {
-                for dc in -1..=1 {
-                    if dr == 0 && dc == 0 {
-                        continue; // skip self
-                    }
-                    if (dr as isize).abs() + (dc as isize).abs() > 1 {
-                        continue; // skip diagonals
-                    }
+            for (dr, dc) in [(-1, 0), (1, 0), (0, 1), (0, -1)] {
                     let (nr, nc) = (r as isize + dr, c as isize + dc);
                     if (0..3).contains(&nr) && (0..3).contains(&nc) {
                         let neighbor = p[nr as usize][nc as usize];
                         counts[neighbor] += 1;
                     }
-                }
             }
             // if there exists a largest mode,
             if let Some((mode, max)) = counts.iter().max_by_key(|&(_, count)| count) {
