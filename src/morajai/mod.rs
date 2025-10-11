@@ -127,24 +127,25 @@ pub fn act(p: &mut PuzzleGrid, r: usize, c: usize) {
         }
         Square::Orange => {
             // change to mode of surrounding (excluding grey). if no mode, no change.
-            use std::collections::HashMap;
-            let mut counts: HashMap<Square, usize> = HashMap::new();
+            use enum_map::EnumMap;
+            let mut counts: EnumMap<Square, u8> = EnumMap::default();
             for dr in -1..=1 {
                 for dc in -1..=1 {
                     if dr == 0 && dc == 0 {
                         continue; // skip self
                     }
+                    if (dr as isize).abs() + (dc as isize).abs() > 1 {
+                        continue; // skip diagonals
+                    }
                     let (nr, nc) = (r as isize + dr, c as isize + dc);
                     if (0..3).contains(&nr) && (0..3).contains(&nc) {
                         let neighbor = p[nr as usize][nc as usize];
-                        if neighbor != Square::Neutral {
-                            *counts.entry(neighbor).or_insert(0) += 1;
-                        }
+                        counts[neighbor] += 1;
                     }
                 }
             }
             // if there exists a largest mode,
-            if let Some((&mode, max)) = counts.iter().max_by_key(|&(_, count)| count) {
+            if let Some((mode, max)) = counts.iter().max_by_key(|&(_, count)| count) {
                 // and it is unique,
                 if counts.iter().filter(|(_, count)| *count == max).count() == 1 {
                     p[r][c] = mode; // set to that mode
