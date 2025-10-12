@@ -36,10 +36,6 @@ pub fn is_solved(p: &PuzzleBox) -> bool {
         && p.target[3] == p.grid[2][2]
 }
 
-pub fn is_solvable(_p: &PuzzleBox) -> bool {
-    true
-}
-
 pub fn act(p: &mut PuzzleGrid, r: usize, c: usize) {
     // if blue, act with color in center, but with current position
     let act = if p[r][c] == Square::Blue {
@@ -216,68 +212,6 @@ mod test_solved {
             ],
         };
         assert!(is_solved(&solved_box));
-    }
-
-    #[test]
-    fn test_is_solvable_obviously() {
-        let solvable_box = PuzzleBox {
-            target: [Square::Red; 4],
-            grid: [[Square::Red; 3]; 3],
-        }; // trivially solved
-        assert!(is_solvable(&solvable_box), "Every square is red, so this is solvable.");
-    }
-
-    #[test]
-    fn test_solvable_indeterminate() {
-        let multi_step = PuzzleBox {
-            target: [Square::Green; 4],
-            grid: [
-                [Square::Black, Square::Green, Square::Green],
-                [Square::Blue, Square::Black, Square::Violet],
-                [Square::Black, Square::Green, Square::Green],
-            ],
-        };
-        assert!(is_solvable(&multi_step), "This is a solvable box. We have at least four green squares.");
-    }
-
-    #[test]
-    fn test_solvable_red() {
-        let red_solve = PuzzleBox {
-            target: [Square::Red;4],
-            grid: [
-                [Square::White, Square::White, Square::White],
-                [Square::White, Square::White, Square::White],
-                [Square::White, Square::White, Square::Red],
-            ],
-        }; // solution: [(2, 2), (2, 2)]
-        assert!(is_solvable(&red_solve), "We can turn all white to black, then all black to red, so this is solvable.");
-    }
-
-    #[test]
-    fn test_solvable_orange() {
-        let orange_solve = PuzzleBox {
-            target: [Square::Blue;4],
-            grid: [
-                [Square::Blue;3],
-                [Square::Blue;3],
-                [Square::Blue, Square::Blue, Square::Orange],
-            ]
-        };
-        assert!(is_solvable(&orange_solve), "We can turn the orange to blue, so this is solvable.");
-    }
-
-    #[test]
-    fn test_unsolvable_heuristic_says_no() {
-        use crate::morajai::Square::*;
-        let unknowably_unsolvable = PuzzleBox {
-            target: [Orange;4],
-            grid: [
-                [Pink, Orange, Pink],
-                [Orange, Neutral, Orange],
-                [Pink, Orange, Pink]
-            ],
-        };
-        assert!(is_solvable(&unknowably_unsolvable), "The heuristic has no idea whether this is solvable or not, even though we suspect is it not");
     }
 }
 
@@ -466,17 +400,17 @@ mod test_act {
     }
 
     #[test]
-    fn test_orange_grey_unchanged() {
+    fn test_orange_grey() {
         let mut test_grid = [[Square::Neutral; 3]; 3];
         // test grey unchanged
-        test_grid[0][0] = Square::Orange;
         let target_grid = test_grid.clone();
+        test_grid[0][0] = Square::Orange;
 
         act(&mut test_grid, 0, 0);
         // Check that the color change has occurred and that none others have changed
         assert_eq!(
             test_grid, target_grid,
-            "Grey should be excluded from mode calculations; cannot change to grey"
+            "Grey should not be excluded from mode calculations; can change to grey"
         );
     }
 

@@ -58,7 +58,6 @@ pub fn bfs<StateType, ActionType>(
     enumerate_actions_fn: fn(&StateType) -> Vec<ActionType>,
     apply_action_fn: fn(&StateType, &ActionType) -> StateType,
     is_goal_fn: fn(&StateType) -> bool,
-    is_solvable: fn(&StateType) -> bool,
 ) -> Option<Vec<ActionType>>
 where
     StateType: Clone + Eq + std::hash::Hash,
@@ -79,7 +78,7 @@ where
 
         for action in enumerate_actions_fn(&current_state) {
             let new_state = apply_action_fn(&current_state, &action);
-            if !visited.contains(&new_state) && is_solvable(&new_state) {
+            if !visited.contains(&new_state) {
                 let mut new_actions = actions.clone();
                 new_actions.push(action);
                 queue.push_back((new_state.clone(), new_actions));

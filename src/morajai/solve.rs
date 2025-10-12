@@ -1,5 +1,5 @@
 use crate::search;
-use crate::morajai::{PuzzleBox, act, is_solved, possible_actions, is_solvable};
+use crate::morajai::{PuzzleBox, act, is_solved, possible_actions};
 
 fn act_adapt(puzzle: &PuzzleBox, action: &(usize, usize)) -> PuzzleBox {
     let mut new = *puzzle;
@@ -14,7 +14,6 @@ pub fn solve(puzzle_box: &PuzzleBox, _max_depth: usize) -> Option<Vec<(usize, us
         possible_actions,
         act_adapt,
         is_solved,
-        is_solvable,
     )
 }
 
