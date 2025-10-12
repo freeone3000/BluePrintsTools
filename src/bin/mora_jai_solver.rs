@@ -1,4 +1,4 @@
-use mora_jai_solver::morajai::{act, solve, PuzzleBox, Square};
+use blue_prince::morajai::{act, solve, PuzzleBox, Square};
 
 const MAX_DEPTH: usize = 100;
 

@@ -1,8 +1,8 @@
 use criterion::{criterion_group, criterion_main, Criterion};
-use mora_jai_solver::morajai::{act, is_solvable, is_solved, possible_actions, PuzzleBox};
-use mora_jai_solver::search;
+use blue_prince::morajai::{act, is_solvable, is_solved, possible_actions, PuzzleBox};
+use blue_prince::search;
 
-use mora_jai_solver::morajai::Square::*;
+use blue_prince::morajai::Square::*;
 
 // TODO look into if we actually need this method at all?
 fn act_adapt(puzzle: &PuzzleBox, action: &(usize, usize)) -> PuzzleBox {

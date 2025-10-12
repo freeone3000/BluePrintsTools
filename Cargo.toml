@@ -1,6 +1,6 @@
 [package]
-name = "mora-jai-solver"
-version = "0.1.0"
+name = "blue-prince"
+version = "0.2.0"
 edition = "2024"
 
 [lib]
@@ -8,6 +8,9 @@ path = "src/lib.rs"
 
 [[bin]]
 name = "mora_jai_solver"
+
+[[bin]]
+name = "numeric_core"
 
 [[bench]]
 name = "solve_tree_search"
